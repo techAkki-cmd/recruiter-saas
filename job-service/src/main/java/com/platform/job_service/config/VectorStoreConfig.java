@@ -22,7 +22,6 @@ public class VectorStoreConfig {
     @Bean
     @Primary
     public EmbeddingModel embeddingModel() {
-        // 🔥 THE TRACER LOG
         System.out.println("\n\n=======================================================");
         System.out.println("🚀🚀🚀 V3: MANUAL GOOGLE GENAI BEAN IS EXECUTING! 🚀🚀🚀");
         System.out.println("=======================================================\n\n");
@@ -31,7 +30,12 @@ public class VectorStoreConfig {
                 .apiKey(apiKey)
                 .build();
 
-        return new GoogleGenAiTextEmbeddingModel(connectionDetails, GoogleGenAiTextEmbeddingOptions.builder().build());
+        // 🔥 THE FIX: Explicitly setting the model name to Google's embedding model
+        GoogleGenAiTextEmbeddingOptions options = GoogleGenAiTextEmbeddingOptions.builder()
+                .model("text-embedding-004")
+                .build();
+
+        return new GoogleGenAiTextEmbeddingModel(connectionDetails, options);
     }
 
     @Bean
