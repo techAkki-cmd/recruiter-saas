@@ -1,5 +1,6 @@
 package com.platform.job_service.config;
 
+import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.google.genai.GoogleGenAiEmbeddingConnectionDetails;
 import org.springframework.ai.google.genai.text.GoogleGenAiTextEmbeddingModel;
 import org.springframework.ai.google.genai.text.GoogleGenAiTextEmbeddingOptions;
@@ -8,6 +9,7 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.io.File;
 
@@ -18,7 +20,13 @@ public class VectorStoreConfig {
     private String apiKey;
 
     @Bean
-    public GoogleGenAiTextEmbeddingModel googleEmbeddingModel() {
+    @Primary
+    public EmbeddingModel embeddingModel() {
+        // 🔥 THE TRACER LOG - If you don't see this, AWS is running old code!
+        System.out.println("\n\n=======================================================");
+        System.out.println("🚀🚀🚀 V3: MANUAL GOOGLE GENAI BEAN IS EXECUTING! 🚀🚀🚀");
+        System.out.println("=======================================================\n\n");
+
         GoogleGenAiEmbeddingConnectionDetails connectionDetails = GoogleGenAiEmbeddingConnectionDetails.builder()
                 .apiKey(apiKey)
                 .build();
@@ -27,9 +35,9 @@ public class VectorStoreConfig {
     }
 
     @Bean
-    public VectorStore vectorStore(GoogleGenAiTextEmbeddingModel googleEmbeddingModel) {
-        // Now it's looking for the EXACT class we just defined above
-        SimpleVectorStore vectorStore = SimpleVectorStore.builder(googleEmbeddingModel).build();
+    public VectorStore vectorStore(EmbeddingModel embeddingModel) {
+        System.out.println("📦 BUILDING VECTOR STORE WITH CUSTOM MODEL...");
+        SimpleVectorStore vectorStore = SimpleVectorStore.builder(embeddingModel).build();
 
         File vectorDbFile = new File("local_resume_vectors.json");
         if (vectorDbFile.exists()) {
