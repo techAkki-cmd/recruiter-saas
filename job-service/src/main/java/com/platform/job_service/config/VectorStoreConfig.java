@@ -30,9 +30,9 @@ public class VectorStoreConfig {
                 .apiKey(apiKey)
                 .build();
 
-        // 🔥 THE FIX: Explicitly setting the model name to Google's embedding model
+        // 🔥 THE REAL FIX: Google deleted the old model. The active one is gemini-embedding-001
         GoogleGenAiTextEmbeddingOptions options = GoogleGenAiTextEmbeddingOptions.builder()
-                .model("text-embedding-004")
+                .model("gemini-embedding-001")
                 .build();
 
         return new GoogleGenAiTextEmbeddingModel(connectionDetails, options);
@@ -43,7 +43,6 @@ public class VectorStoreConfig {
         System.out.println("📦 BUILDING VECTOR STORE WITH CUSTOM MODEL...");
         SimpleVectorStore vectorStore = SimpleVectorStore.builder(embeddingModel).build();
 
-        // 🌟 PART 2 APPLIED HERE: Saving to the safe, persistent sub-folder
         File vectorDbFile = new File("/app/data/local_resume_vectors.json");
 
         if (vectorDbFile.exists()) {
