@@ -46,11 +46,13 @@ services:
     restart: always
     ports:
       - "8888:8888"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
       - discovery-server
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
     networks:
       - recruiter-network
 
@@ -64,8 +66,10 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - discovery-server
-      - config-server
+      discovery-server:
+        condition: service_started
+      config-server:
+        condition: service_healthy
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
@@ -99,11 +103,12 @@ services:
     restart: always
     ports:
       - "8082:8082"
+    # 🔥 THE FIX: Use Healthcheck conditions so it waits for Config Server to be READY
     depends_on:
-      - mysql-db
-      - rabbitmq-broker
-      - discovery-server
-      - config-server
+      discovery-server:
+        condition: service_started
+      config-server:
+        condition: service_healthy
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
@@ -124,8 +129,10 @@ services:
       - CLOUD_AWS_REGION_STATIC=${AWS_REGION}
       - CLOUD_AWS_S3_BUCKET_NAME=${AWS_BUCKET_NAME}
 
+    # 🔥 THE FIX: Use a named volume for the whole /app folder or a data subfolder
+    # This prevents "file not found" errors on a fresh AWS instance
     volumes:
-      - ./local_resume_vectors.json:/app/local_resume_vectors.json
+      - resume_vectors:/app
 
     networks:
       - recruiter-network
@@ -139,3 +146,4 @@ networks:
 
 volumes:
   mysql_data: {}
+  resume_vectors: {}
