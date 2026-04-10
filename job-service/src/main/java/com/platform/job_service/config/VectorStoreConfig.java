@@ -1,6 +1,5 @@
 package com.platform.job_service.config;
 
-import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.google.genai.GoogleGenAiEmbeddingConnectionDetails;
 import org.springframework.ai.google.genai.text.GoogleGenAiTextEmbeddingModel;
 import org.springframework.ai.google.genai.text.GoogleGenAiTextEmbeddingOptions;
@@ -19,19 +18,18 @@ public class VectorStoreConfig {
     private String apiKey;
 
     @Bean
-    public EmbeddingModel embeddingModel() {
-        // Create the connection details using your injected API key
+    public GoogleGenAiTextEmbeddingModel googleEmbeddingModel() {
         GoogleGenAiEmbeddingConnectionDetails connectionDetails = GoogleGenAiEmbeddingConnectionDetails.builder()
                 .apiKey(apiKey)
                 .build();
 
-        // Initialize the specific Text Embedding model with default options
         return new GoogleGenAiTextEmbeddingModel(connectionDetails, GoogleGenAiTextEmbeddingOptions.builder().build());
     }
 
     @Bean
-    public VectorStore vectorStore(EmbeddingModel embeddingModel) {
-        SimpleVectorStore vectorStore = SimpleVectorStore.builder(embeddingModel).build();
+    public VectorStore vectorStore(GoogleGenAiTextEmbeddingModel googleEmbeddingModel) {
+        // Now it's looking for the EXACT class we just defined above
+        SimpleVectorStore vectorStore = SimpleVectorStore.builder(googleEmbeddingModel).build();
 
         File vectorDbFile = new File("local_resume_vectors.json");
         if (vectorDbFile.exists()) {
