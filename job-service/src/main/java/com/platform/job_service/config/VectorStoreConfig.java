@@ -13,13 +13,13 @@ public class VectorStoreConfig {
 
     @Bean
     public VectorStore vectorStore(EmbeddingModel embeddingModel) {
-        // Spring Boot will automatically inject the Local Transformers Embedder here!
+        // Spring Boot will automatically inject the Google GenAI Embedder here!
         SimpleVectorStore vectorStore = SimpleVectorStore.builder(embeddingModel).build();
 
         File vectorDbFile = new File("local_resume_vectors.json");
         if (vectorDbFile.exists()) {
             vectorStore.load(vectorDbFile);
-            System.out.println("📦 Loaded existing vector database from disk.");
+            System.out.println("☁️ Loaded existing Google GenAI vector database from disk.");
         }
 
         return vectorStore;
