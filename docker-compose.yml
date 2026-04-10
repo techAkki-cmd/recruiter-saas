@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # 1. INFRASTRUCTURE SERVICES
+  # ==========================================
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=recruiter_db # Optional: auto-creates this DB on startup
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - recruiter-network
+
+  rabbitmq-broker:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-broker
+    restart: always
+    ports:
+      - "5672:5672"   # Main AMQP port
+      - "15672:15672" # Management UI
+    networks:
+      - recruiter-network
+
+  # ==========================================
+  # 2. CORE SPRING CLOUD SERVICES
+  # ==========================================
+  discovery-server:
+    build: ./discovery-server
+    container_name: discovery-server
+    restart: always
+    ports:
+      - "8761:8761"
+    networks:
+      - recruiter-network
+
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    restart: always
+    ports:
+      - "8888:8888"
+    depends_on:
+      - discovery-server
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    networks:
+      - recruiter-network
+
+  # ==========================================
+  # 3. BUSINESS MICROSERVICES
+  # ==========================================
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - discovery-server
+      - config-server
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+    networks:
+      - recruiter-network
+
+  recruiter-service:
+    build: ./recruiter-service
+    container_name: recruiter-service
+    restart: always
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mysql-db
+      - discovery-server
+      - config-server
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      # Ensure it connects to the Docker MySQL, not localhost
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/recruiter_db
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    networks:
+      - recruiter-network
+
+  job-service:
+    build: ./job-service
+    container_name: job-service
+    restart: always
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mysql-db
+      - rabbitmq-broker
+      - discovery-server
+      - config-server
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+
+      # Database Connection
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/job_db
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_ROOT_PASSWORD}
+
+      # RabbitMQ Connection
+      - SPRING_RABBITMQ_HOST=rabbitmq-broker
+      - SPRING_RABBITMQ_PORT=5672
+
+      # AI and AWS Secrets pulled from .env
+      - SPRING_AI_GOOGLE_GENAI_API_KEY=${GOOGLE_GENAI_API_KEY}
+      - CLOUD_AWS_CREDENTIALS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - CLOUD_AWS_CREDENTIALS_SECRET_KEY=${AWS_SECRET_KEY}
+      - CLOUD_AWS_REGION_STATIC=${AWS_REGION}
+      - CLOUD_AWS_S3_BUCKET_NAME=${AWS_BUCKET_NAME}
+
+    volumes:
+      - ./local_resume_vectors.json:/app/local_resume_vectors.json
+
+    networks:
+      - recruiter-network
+
+# ==========================================
+# 4. SHARED NETWORKS & VOLUMES
+# ==========================================
+networks:
+  recruiter-network:
+    driver: bridge
+
+volumes:
+  mysql_data: {}

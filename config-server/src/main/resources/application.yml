@@ -1,0 +1,13 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          # IMPORTANT: Change this to your actual GitHub Repo URL
+          uri: https://github.com/techAkki-cmd/Recruiter-config
+          default-label: main

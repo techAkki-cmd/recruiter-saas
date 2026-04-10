@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: recruiter-service
+  config:
+    # This tells the service to fetch 'recruiter-service.yml' from port 8888 on startup
+    import: optional:configserver:http://localhost:8888
