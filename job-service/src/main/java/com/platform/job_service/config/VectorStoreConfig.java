@@ -22,7 +22,7 @@ public class VectorStoreConfig {
     @Bean
     @Primary
     public EmbeddingModel embeddingModel() {
-        // 🔥 THE TRACER LOG - If you don't see this, AWS is running old code!
+        // 🔥 THE TRACER LOG
         System.out.println("\n\n=======================================================");
         System.out.println("🚀🚀🚀 V3: MANUAL GOOGLE GENAI BEAN IS EXECUTING! 🚀🚀🚀");
         System.out.println("=======================================================\n\n");
@@ -39,7 +39,9 @@ public class VectorStoreConfig {
         System.out.println("📦 BUILDING VECTOR STORE WITH CUSTOM MODEL...");
         SimpleVectorStore vectorStore = SimpleVectorStore.builder(embeddingModel).build();
 
-        File vectorDbFile = new File("local_resume_vectors.json");
+        // 🌟 PART 2 APPLIED HERE: Saving to the safe, persistent sub-folder
+        File vectorDbFile = new File("/app/data/local_resume_vectors.json");
+
         if (vectorDbFile.exists()) {
             vectorStore.load(vectorDbFile);
             System.out.println("☁️ Loaded existing Google GenAI vector database from disk.");
