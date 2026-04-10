@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class TesseractConfig {
 
-    // Defaults to the standard Linux Docker path if not provided
     @Value("${app.ocr.tesseract.datapath:/usr/share/tesseract-ocr/4.00/tessdata}")
     private String tessDataPath;
 

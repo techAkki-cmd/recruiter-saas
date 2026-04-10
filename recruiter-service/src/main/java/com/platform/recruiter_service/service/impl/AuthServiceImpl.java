@@ -30,7 +30,6 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Error: Email is already in use!");
         }
 
-        // Create new recruiter account and hash the password
         Recruiter recruiter = Recruiter.builder()
                 .fullName(request.getFullName())
                 .email(request.getEmail())
@@ -40,7 +39,6 @@ public class AuthServiceImpl implements AuthService {
 
         recruiterRepository.save(recruiter);
 
-        // Auto-login after registration
         return login(new AuthRequest(request.getEmail(), request.getPassword()));
     }
 

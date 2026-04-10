@@ -9,6 +9,5 @@ import java.util.List;
 @Repository
 public interface JobRepository extends JpaRepository<Job, Long> {
 
-    // Find all jobs posted by a specific recruiter
     List<Job> findByRecruiterEmail(String email);
 }

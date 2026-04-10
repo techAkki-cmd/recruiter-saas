@@ -43,12 +43,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 System.out.println("SUCCESS! TOKEN VALID. USER EMAIL: " + email);
 
-                // 1. Give the user a dummy role to satisfy strict security managers
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(email, null,
                                 java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_RECRUITER")));
 
-                // 2. Use the modern Spring 6 Context Setting approach
                 org.springframework.security.core.context.SecurityContext context =
                         SecurityContextHolder.createEmptyContext();
                 context.setAuthentication(authentication);

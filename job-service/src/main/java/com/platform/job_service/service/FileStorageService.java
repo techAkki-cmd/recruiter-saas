@@ -25,11 +25,9 @@ public class FileStorageService {
 
     public String uploadFileToS3(MultipartFile file, String candidateName) {
 
-        // Sanitize candidate name and combine with UUID for a robust, unique filename
         String sanitizedName = candidateName.replaceAll("[^a-zA-Z0-9]", "_").toLowerCase();
         String uniqueFileName = sanitizedName + "_" + UUID.randomUUID() + ".pdf";
 
-        // Extract content type dynamically, fallback to pdf
         String contentType = file.getContentType();
         if (contentType == null || contentType.isEmpty()) {
             contentType = "application/pdf";
@@ -42,10 +40,8 @@ public class FileStorageService {
                     .contentType(contentType)
                     .build();
 
-            // Retaining byte extraction to prevent AWS SDK stream consumption signature bugs
             s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));
 
-            // Construct URL dynamically
             return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, uniqueFileName);
 
         } catch (IOException e) {

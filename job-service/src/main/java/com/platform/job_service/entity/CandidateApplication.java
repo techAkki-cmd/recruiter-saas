@@ -29,7 +29,6 @@ public class CandidateApplication {
     @Column(nullable = false)
     private String candidateEmail;
 
-    // Stores the massive raw text string extracted from the PDF
     @Column(columnDefinition = "TEXT", nullable = false)
     private String resumeText;
 
@@ -39,7 +38,6 @@ public class CandidateApplication {
     @Column(nullable = false)
     private String status = "PROCESSING";
 
-    // Placeholders for the Phase 4 AI Integration
     private Integer aiMatchScore;
 
     @Column(columnDefinition = "TEXT")

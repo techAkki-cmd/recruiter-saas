@@ -27,12 +27,12 @@ public class Recruiter {
     private String email;
 
     @Column(nullable = false)
-    private String password; // This will store the BCrypt hashed password
+    private String password;
 
     @Column(name = "company_name")
     private String companyName;
 
-    // We will use this for Spring Security later
+
     @Column(nullable = false)
     @Builder.Default
     private String role = "ROLE_RECRUITER";

@@ -33,15 +33,14 @@ public class ResumeConsumer {
 
     private final CandidateApplicationRepository applicationRepository;
     private final OcrService ocrService;
-    private final AiScoringServiceImpl aiScoringService; // 🔥 Changed to Interface
+    private final AiScoringServiceImpl aiScoringService;
     private final SseService sseService;
     private final VectorStore vectorStore;
-    private final S3Client s3Client; // 🔥 Inject S3 to download the file
+    private final S3Client s3Client;
 
     @Value("${cloud.aws.s3.bucket-name}")
     private String bucketName;
 
-    // Listen to the queue dynamically from properties
     @RabbitListener(queues = "${rabbitmq.queue.resume.name:resume_processing_queue}")
     @Transactional
     public void processResume(ResumeProcessMessage message) {
@@ -54,19 +53,16 @@ public class ResumeConsumer {
         File tempFile = null;
 
         try {
-            // 1. 🔥 DOWNLOAD FROM S3
             log.info("☁️ WORKER THREAD: Downloading resume from S3...");
             String s3Url = message.getS3Url();
             String fileName = s3Url.substring(s3Url.lastIndexOf("/") + 1);
 
-            // 🔥 FIX: Dynamically grab the file extension instead of hardcoding .pdf
-            String extension = ".pdf"; // Default fallback
+            String extension = ".pdf";
             int dotIndex = fileName.lastIndexOf(".");
             if (dotIndex > 0) {
-                extension = fileName.substring(dotIndex); // e.g., ".jpg" or ".png"
+                extension = fileName.substring(dotIndex);
             }
 
-            // Create temp file with the CORRECT extension
             tempFile = File.createTempFile("worker-resume-", extension);
 
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
@@ -77,7 +73,6 @@ public class ResumeConsumer {
             byte[] s3FileData = s3Client.getObjectAsBytes(getObjectRequest).asByteArray();
             Files.write(tempFile.toPath(), s3FileData);
 
-            // 2. EXTRACT TEXT
             String extractedText;
             try (FileInputStream fis = new FileInputStream(tempFile)) {
                 Tika tika = new Tika();
@@ -89,20 +84,17 @@ public class ResumeConsumer {
                 }
             }
 
-            // 3. AI SCORING
             log.info("🧠 WORKER THREAD: Sending extracted text to Gemini...");
             AiScoreResponse aiResult = aiScoringService.scoreRawText(job, extractedText);
 
-            // 4. UPDATE DATABASE
             application.setResumeText(extractedText);
             application.setAiMatchScore(aiResult.matchScore());
             application.setAiSummary(aiResult.summary());
             application.setStatus("COMPLETED");
             applicationRepository.save(application);
 
-            log.info("✅ WORKER THREAD: Successfully parsed and scored Application ID: {}", message.getApplicationId());
+            log.info(" WORKER THREAD: Successfully parsed and scored Application ID: {}", message.getApplicationId());
 
-            // 5. RAG INGESTION
             try {
                 log.info("🪓 WORKER THREAD: Chunking text and generating embeddings...");
 
@@ -119,7 +111,6 @@ public class ResumeConsumer {
                 List<Document> chunks = splitter.apply(List.of(doc));
                 vectorStore.add(chunks);
 
-                // Warning: In Docker, this local file is lost on container restart!
                 if (vectorStore instanceof SimpleVectorStore simpleStore) {
                     simpleStore.save(new File("local_resume_vectors.json"));
                 }
@@ -130,7 +121,6 @@ public class ResumeConsumer {
                 log.error("⚠️ WORKER THREAD: Failed to create embeddings, but application was saved.", e);
             }
 
-            // 6. NOTIFY FRONTEND
             sseService.notifyRecruiter(job.getRecruiterEmail(), application.getId(), "COMPLETED");
 
         } catch (Exception e) {
@@ -139,7 +129,6 @@ public class ResumeConsumer {
             applicationRepository.save(application);
             sseService.notifyRecruiter(job.getRecruiterEmail(), application.getId(), "FAILED");
         } finally {
-            // Always clean up the local S3 download!
             if (tempFile != null && tempFile.exists()) {
                 try {
                     Files.delete(tempFile.toPath());

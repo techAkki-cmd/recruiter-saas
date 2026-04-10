@@ -18,7 +18,7 @@ public class AiScoringServiceImpl {
         this.chatClient = chatClientBuilder.build();
     }
 
-    // ORIGINAL METHOD (Kept for manual API calls)
+
     public AiScoreResponse analyzeResume(Long applicationId, String recruiterEmail) {
         CandidateApplication application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new RuntimeException("Application not found"));
@@ -36,7 +36,7 @@ public class AiScoringServiceImpl {
         return response;
     }
 
-    // 🔥 NEW "PURE BRAIN" METHOD FOR RABBITMQ 🔥
+
     public AiScoreResponse scoreRawText(Job job, String extractedResumeText) {
         String systemPrompt = """
                 You are an expert Senior Technical Recruiter and a strict AI evaluator. 
@@ -61,7 +61,7 @@ public class AiScoringServiceImpl {
                 job.getTitle(),
                 job.getSkillsRequired() != null ? String.join(", ", job.getSkillsRequired()) : "Not specified",
                 job.getMinExperience(),
-                extractedResumeText // This is safely sandboxed inside the tags
+                extractedResumeText
         );
 
         return chatClient.prompt()

@@ -47,7 +47,6 @@ public class JobController {
             @Parameter(description = "Candidate's resume (PDF format)") @RequestParam("file") MultipartFile file,
             @Parameter(hidden = true) Authentication authentication) {
 
-        // Extract the logged-in recruiter's email from the JWT token
         String recruiterEmail = (String) authentication.getPrincipal();
 
         return ResponseEntity.ok(jobService.uploadResume(jobId, file, candidateName, candidateEmail, recruiterEmail));
@@ -65,14 +64,12 @@ public class JobController {
 
             @Parameter(hidden = true) Authentication authentication) {
 
-        // 1. Validation: Ensure arrays match in length
         if (files.size() != candidateNames.size() || files.size() != candidateEmails.size()) {
             return ResponseEntity.badRequest().body("Error: The number of files, names, and emails must exactly match.");
         }
 
         String recruiterEmail = (String) authentication.getPrincipal();
 
-        // 2. Process all uploads
         List<String> responses = jobService.bulkUploadResumes(jobId, files, candidateNames, candidateEmails, recruiterEmail);
 
         return ResponseEntity.ok(Map.of(
@@ -82,8 +79,7 @@ public class JobController {
         ));
     }
 
-    // Inject the new service at the top of JobController
-    // private final AiScoringServiceImpl aiScoringService;
+
 
     @PostMapping("/applications/{applicationId}/analyze")
     public ResponseEntity<com.platform.job_service.dto.AiScoreResponse> analyzeApplication(
@@ -99,7 +95,6 @@ public class JobController {
             @PathVariable Long applicationId,
             Authentication authentication) {
 
-        // Extract the email exactly like you did in the other methods
         String recruiterEmail = (String) authentication.getPrincipal();
 
         ApplicationDetailsResponse response = jobService.getApplicationDetails(applicationId, recruiterEmail);
@@ -117,34 +112,27 @@ public class JobController {
             @RequestParam String query,
             @RequestParam(required = false) String candidateName) {
 
-        // Pass both the semantic query and the exact name filter to the service
         List<Document> results = jobService.searchResumes(query, candidateName);
 
-        // Returning raw documents so you can see the magic (text chunks + metadata)
         return ResponseEntity.ok(results);
     }
 
-    // 🔥 The Magic "Google Search" Style Endpoint (Upgraded for RAG)
     @GetMapping("/smart-search")
     public ResponseEntity<?> smartSearch(@RequestParam String prompt) {
 
-        // 1. EXTRACT: Let the Agent figure out what the user wants
         SearchIntent intent = agentService.extractSearchIntent(prompt);
 
-        // 2. RETRIEVE: Pull the exact matching resume chunks from the Vector DB
         List<Document> results = jobService.searchResumes(
                 intent.skillsAndKeywords(),
                 intent.exactCandidateName()
         );
 
-        // 3. GENERATE (RAG): Ask Gemini to read the results and answer the user's prompt
         String aiAnswer = agentService.synthesizeAnswer(prompt, results);
 
-        // 4. Return EVERYTHING to the frontend!
         return ResponseEntity.ok(Map.of(
                 "aiUnderstanding", intent,
-                "aiSummary", aiAnswer, // 🔥 The new conversational answer!
-                "matchingResumes", results // 🔥 The raw evidence for the grid
+                "aiSummary", aiAnswer,
+                "matchingResumes", results
         ));
     }
 }

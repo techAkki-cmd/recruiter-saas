@@ -11,7 +11,7 @@ public class ApplicationDetailsResponse {
     private Long id;
     private String candidateName;
     private String candidateEmail;
-    private String status; // PROCESSING, COMPLETED, or FAILED
+    private String status;
     private Integer aiMatchScore;
     private String aiSummary;
     private String resumeS3Url;

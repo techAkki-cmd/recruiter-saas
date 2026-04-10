@@ -12,7 +12,7 @@ import com.platform.job_service.service.FileStorageService;
 import com.platform.job_service.service.JobService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value; // 🔥 Corrected Import
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -79,10 +79,10 @@ public class JobServiceImpl implements JobService {
         }
 
         try {
-            // 1. Upload to S3 - This is now our single source of truth
+
             String s3Url = fileStorageService.uploadFileToS3(file, candidateName);
 
-            // 2. Save the initial application as "PROCESSING"
+
             CandidateApplication application = CandidateApplication.builder()
                     .job(job)
                     .candidateName(candidateName)
@@ -94,10 +94,10 @@ public class JobServiceImpl implements JobService {
 
             CandidateApplication savedApplication = applicationRepository.save(application);
 
-            // 3. Send the message to RabbitMQ using the S3 URL!
+
             ResumeProcessMessage message = new ResumeProcessMessage(savedApplication.getId(), s3Url);
 
-            // 🔥 Corrected to use the injected dynamic properties
+
             rabbitTemplate.convertAndSend(exchangeName, routingKey, message);
 
             log.info("Resume queued for processing via S3 URL. Candidate: {}, Application ID: {}", candidateName, savedApplication.getId());
@@ -113,7 +113,7 @@ public class JobServiceImpl implements JobService {
     public List<String> bulkUploadResumes(Long jobId, List<MultipartFile> files, List<String> names, List<String> emails, String recruiterEmail) {
         List<String> responses = new ArrayList<>();
 
-        // Loop through all uploaded files and reuse your existing logic!
+
         for (int i = 0; i < files.size(); i++) {
             try {
                 String response = uploadResume(jobId, files.get(i), names.get(i), emails.get(i), recruiterEmail);
@@ -153,9 +153,8 @@ public class JobServiceImpl implements JobService {
 
         SearchRequest.Builder requestBuilder = SearchRequest.builder()
                 .query(query)
-                .topK(5); // Still returns top 5 best matches
+                .topK(5);
 
-        // If the recruiter provided a name, filter by the metadata we saved earlier!
         if (candidateName != null && !candidateName.isEmpty()) {
             requestBuilder.filterExpression("candidateName == '" + candidateName + "'");
         }

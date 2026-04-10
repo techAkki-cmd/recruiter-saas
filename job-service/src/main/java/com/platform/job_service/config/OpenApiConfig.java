@@ -16,12 +16,12 @@ public class OpenApiConfig {
     public OpenAPI jobServiceOpenAPI() {
         final String securitySchemeName = "bearerAuth";
         return new OpenAPI()
-                // 🔥 Routes traffic through the Gateway
+
                 .addServersItem(new Server().url("http://localhost:8080").description("API Gateway"))
                 .info(new Info()
-                        .title("Job Service API") // <-- DIFFERENT TITLE
+                        .title("Job Service API")
                         .version("1.0")
-                        .description("API documentation for Resume Processing and AI Search.")) // <-- DIFFERENT DESCRIPTION
+                        .description("API documentation for Resume Processing and AI Search."))
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName, new SecurityScheme()

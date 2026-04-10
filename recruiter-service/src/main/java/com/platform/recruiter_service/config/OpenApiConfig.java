@@ -5,7 +5,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
-import io.swagger.v3.oas.models.servers.Server; // 🔥 ADD THIS IMPORT
+import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,7 +16,6 @@ public class OpenApiConfig {
     public OpenAPI recruiterServiceOpenAPI() {
         final String securitySchemeName = "bearerAuth";
         return new OpenAPI()
-                // 🔥 ADD THIS LINE: Forces Swagger to route traffic through the Gateway
                 .addServersItem(new Server().url("http://localhost:8080").description("API Gateway"))
                 .info(new Info()
                         .title("Recruiter Auth API")

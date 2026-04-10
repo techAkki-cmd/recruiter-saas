@@ -32,7 +32,6 @@ public class AwsConfig {
         return S3Client.builder()
                 .region(Region.of(s3Region))
                 .credentialsProvider(getCredentialsProvider())
-                // Retaining native UrlConnection to bypass the Apache HTTP bug
                 .httpClient(UrlConnectionHttpClient.builder().build())
                 .build();
     }

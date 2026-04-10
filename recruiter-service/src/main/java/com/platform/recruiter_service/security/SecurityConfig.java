@@ -46,18 +46,15 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 🔓 1. WHITELIST SWAGGER UI & OPENAPI DOCS
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // 🔓 2. ALLOW AUTH ENDPOINTS (Login & Register must remain public!)
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
 
-                        // 🔒 3. LOCK DOWN EVERYTHING ELSE
                         .anyRequest().authenticated()
                 );
 

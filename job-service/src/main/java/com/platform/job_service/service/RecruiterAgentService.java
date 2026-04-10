@@ -23,10 +23,8 @@ public class RecruiterAgentService {
     public SearchIntent extractSearchIntent(String humanSentence) {
         log.info("🤖 AGENT: Analyzing human input: '{}'", humanSentence);
 
-        // 1. Tell Spring AI what Java class we want Gemini to return
         BeanOutputConverter<SearchIntent> converter = new BeanOutputConverter<>(SearchIntent.class);
 
-        // 2. Build the exact instructions for Gemini
         String systemPrompt = """
                 You are a smart assistant for a technical recruiter.
                 The recruiter is going to type a natural language search query.
@@ -42,15 +40,12 @@ public class RecruiterAgentService {
                 {format}
                 """;
 
-        // 3. Inject the user's sentence and the JSON format instructions
         PromptTemplate template = new PromptTemplate(systemPrompt);
         Prompt prompt = template.create(Map.of(
                 "query", humanSentence,
-                // Spring AI automatically generates the JSON schema instructions here!
                 "format", converter.getFormat()
         ));
 
-        // 4. Call Gemini and convert the raw JSON string back into our Java Object
         String rawResponse = chatModel.call(prompt).getResult().getOutput().getText();
         SearchIntent intent = converter.convert(rawResponse);
 
@@ -69,14 +64,12 @@ public class RecruiterAgentService {
             return "I couldn't find any candidate profiles matching that exact description.";
         }
 
-        // 1. Combine all the retrieved resume text into one big string
         StringBuilder contextBuilder = new StringBuilder();
         for (Document doc : resumes) {
             contextBuilder.append("Candidate: ").append(doc.getMetadata().get("candidateName")).append("\n");
             contextBuilder.append("Resume Extract: ").append(doc.getText()).append("\n\n");
         }
 
-        // 2. Build the RAG Prompt
         String systemPrompt = """
                 You are a helpful and professional technical recruiter assistant.
                 The user asked: {question}
@@ -95,7 +88,6 @@ public class RecruiterAgentService {
                 "context", contextBuilder.toString()
         ));
 
-        // 3. Ask Gemini to write the answer!
         return chatModel.call(prompt).getResult().getOutput().getText();
     }
 }

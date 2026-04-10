@@ -37,7 +37,6 @@ public class Job {
 
     private String location;
 
-    // This is how we tie the Job back to the Recruiter without sharing databases!
     @Column(nullable = false)
     private String recruiterEmail;
 

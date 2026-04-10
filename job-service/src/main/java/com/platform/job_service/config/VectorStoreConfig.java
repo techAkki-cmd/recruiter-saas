@@ -22,15 +22,12 @@ public class VectorStoreConfig {
     @Bean
     @Primary
     public EmbeddingModel embeddingModel() {
-        System.out.println("\n\n=======================================================");
         System.out.println("🚀🚀🚀 V3: MANUAL GOOGLE GENAI BEAN IS EXECUTING! 🚀🚀🚀");
-        System.out.println("=======================================================\n\n");
 
         GoogleGenAiEmbeddingConnectionDetails connectionDetails = GoogleGenAiEmbeddingConnectionDetails.builder()
                 .apiKey(apiKey)
                 .build();
 
-        // 🔥 THE REAL FIX: Google deleted the old model. The active one is gemini-embedding-001
         GoogleGenAiTextEmbeddingOptions options = GoogleGenAiTextEmbeddingOptions.builder()
                 .model("gemini-embedding-001")
                 .build();
@@ -40,14 +37,14 @@ public class VectorStoreConfig {
 
     @Bean
     public VectorStore vectorStore(EmbeddingModel embeddingModel) {
-        System.out.println("📦 BUILDING VECTOR STORE WITH CUSTOM MODEL...");
+        System.out.println(" BUILDING VECTOR STORE WITH CUSTOM MODEL...");
         SimpleVectorStore vectorStore = SimpleVectorStore.builder(embeddingModel).build();
 
         File vectorDbFile = new File("/app/data/local_resume_vectors.json");
 
         if (vectorDbFile.exists()) {
             vectorStore.load(vectorDbFile);
-            System.out.println("☁️ Loaded existing Google GenAI vector database from disk.");
+            System.out.println("Loaded existing Google GenAI vector database from disk.");
         }
 
         return vectorStore;

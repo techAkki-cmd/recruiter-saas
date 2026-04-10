@@ -24,12 +24,10 @@ public class OcrService {
         try {
             String extractedText;
 
-            // 🔥 THE FIX: Use Tika to detect the ACTUAL file type from its raw bytes!
             Tika tika = new Tika();
             String mimeType = tika.detect(file);
             log.info("Tika detected actual file type as: {}", mimeType);
 
-            // If the bytes prove it is an image, process it safely as an image
             if (mimeType != null && mimeType.startsWith("image/")) {
                 log.info("Recognized true image format. Bypassing PDF parser completely.");
                 BufferedImage image = ImageIO.read(file);
@@ -40,7 +38,6 @@ public class OcrService {
 
                 extractedText = tesseract.doOCR(image);
             }
-            // Otherwise, let Tesseract handle it as a standard document/PDF
             else {
                 log.info("Processing as standard document/PDF.");
                 extractedText = tesseract.doOCR(file);
