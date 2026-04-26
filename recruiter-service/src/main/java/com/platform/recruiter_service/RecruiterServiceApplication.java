@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
 @SpringBootApplication
 @EnableDiscoveryClient
 
-@OpenAPIDefinition(servers = {@Server(url = "http://13.61.182.103:8080", description = "AWS Gateway")})
+@OpenAPIDefinition(servers = {@Server(url = "http://13.61.182.103", description = "AWS Gateway")})
 public class RecruiterServiceApplication {
 
 	public static void main(String[] args) {
